@@ -14,6 +14,7 @@ const Auth = () => {
   const [step, setStep] = useState<'form' | 'confirm'>('form');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -37,6 +38,7 @@ const Auth = () => {
       password,
       options: {
         emailRedirectTo: window.location.origin,
+        data: { full_name: fullName.trim() },
       },
     });
 
@@ -125,6 +127,10 @@ const Auth = () => {
               {mode === 'signup' && (
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div className="space-y-2">
+                    <Label>Full Name</Label>
+                    <Input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your name" className="bg-background" required />
+                  </div>
+                  <div className="space-y-2">
                     <Label>Email</Label>
                     <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@email.com" className="bg-background" required />
                   </div>
@@ -132,7 +138,7 @@ const Auth = () => {
                     <Label>Password</Label>
                     <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 6 characters" className="bg-background" required minLength={6} />
                   </div>
-                  <Button type="submit" disabled={loading} className="w-full rounded-full">
+                  <Button type="submit" disabled={loading || !fullName.trim()} className="w-full rounded-full">
                     {loading ? 'Creating account...' : 'Create Account'}
                   </Button>
                 </form>

@@ -13,6 +13,7 @@ import EditExpenseDialog from '@/components/trip/EditExpenseDialog';
 import ShareJoinCode from '@/components/trip/ShareJoinCode';
 import ExpenseFilters from '@/components/trip/ExpenseFilters';
 import TripStats from '@/components/trip/TripStats';
+import SettledHistoryView from '@/components/trip/SettledHistoryView';
 import DarkModeToggle from '@/components/trip/DarkModeToggle';
 import { toast } from '@/hooks/use-toast';
 
@@ -171,6 +172,7 @@ const TripDashboard = () => {
             <TabsTrigger value="expenses" className="flex-1 rounded-full data-[state=active]:bg-background data-[state=active]:shadow-sm">Expenses</TabsTrigger>
             <TabsTrigger value="balances" className="flex-1 rounded-full data-[state=active]:bg-background data-[state=active]:shadow-sm">Balances</TabsTrigger>
             <TabsTrigger value="settle" className="flex-1 rounded-full data-[state=active]:bg-background data-[state=active]:shadow-sm">Settle</TabsTrigger>
+            <TabsTrigger value="history" className="flex-1 rounded-full data-[state=active]:bg-background data-[state=active]:shadow-sm">History</TabsTrigger>
             <TabsTrigger value="stats" className="flex-1 rounded-full data-[state=active]:bg-background data-[state=active]:shadow-sm">
               <BarChart3 className="w-4 h-4" />
             </TabsTrigger>
@@ -244,6 +246,10 @@ const TripDashboard = () => {
 
           <TabsContent value="stats">
             <TripStats expenses={trip.expenses} travellers={trip.travellers} currencySymbol={sym} />
+          </TabsContent>
+
+          <TabsContent value="history">
+            <SettledHistoryView pastSettlements={trip.pastSettlements} currencySymbol={sym} />
           </TabsContent>
         </Tabs>
       </div>

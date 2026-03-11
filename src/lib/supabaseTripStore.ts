@@ -6,7 +6,6 @@ export async function createTripInDB(data: {
   startDate: string;
   endDate: string;
   currency: string;
-  travellers: string[];
 }) {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error('Not authenticated');
@@ -29,14 +28,18 @@ export async function createTripInDB(data: {
 
   if (error) throw error;
 
-  // Add travellers as members, link creator to first traveller
-  for (let i = 0; i < data.travellers.length; i++) {
-    await supabase.from('trip_members').insert({
-      trip_id: trip.id,
-      name: data.travellers[i],
-      user_id: i === 0 ? userData.user.id : null,
-    });
-  }
+  // Auto-add the creator as the first member
+  const creatorName =
+    userData.user.user_metadata?.full_name ||
+    userData.user.user_metadata?.name ||
+    userData.user.email?.split('@')[0] ||
+    'Me';
+
+  await supabase.from('trip_members').insert({
+    trip_id: trip.id,
+    name: creatorName,
+    user_id: userData.user.id,
+  });
 
   return trip;
 }
@@ -151,7 +154,7 @@ export async function addSettlementToDB(tripId: string, settlement: Settlement) 
   if (error) throw error;
 }
 
-export async function joinTripByCode(code: string, displayName: string) {
+export async function joinTripByCode(code: string) {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error('Not authenticated');
 
@@ -163,10 +166,17 @@ export async function joinTripByCode(code: string, displayName: string) {
 
   if (tripError || !trip) throw new Error('Trip not found. Check the code and try again.');
 
+  // Resolve name from auth profile
+  const memberName =
+    userData.user.user_metadata?.full_name ||
+    userData.user.user_metadata?.name ||
+    userData.user.email?.split('@')[0] ||
+    'Traveller';
+
   // Add as member
   const { error: memberError } = await supabase.from('trip_members').insert({
     trip_id: trip.id,
-    name: displayName,
+    name: memberName,
     user_id: userData.user.id,
   });
 

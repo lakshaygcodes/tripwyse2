@@ -102,4 +102,44 @@ describe('getSettlementsFromBalances', () => {
     const settlements = getSettlementsFromBalances({ Alice: 0.001, Bob: -0.001 });
     expect(settlements).toHaveLength(0);
   });
+
+  it('handles one creditor and three debtors', () => {
+    const settlements = getSettlementsFromBalances({ Alice: 90, Bob: -30, Charlie: -30, Dave: -30 });
+    const totalPaid = settlements.reduce((s, t) => s + t.amount, 0);
+    expect(totalPaid).toBeCloseTo(90);
+    settlements.forEach(s => expect(s.to).toBe('Alice'));
+  });
+
+  it('rounds settlement amounts to 2 decimal places', () => {
+    // 100 / 3 = 33.333...
+    const settlements = getSettlementsFromBalances({ Alice: 66.67, Bob: -33.33, Charlie: -33.34 });
+    settlements.forEach(s => {
+      expect(Number(s.amount.toFixed(2))).toBe(s.amount);
+    });
+  });
+});
+
+describe('date validation', () => {
+  const validateDates = (start: string, end: string) =>
+    start && end && end < start ? 'End date cannot be before start date' : null;
+
+  it('returns null when end equals start', () => {
+    expect(validateDates('2026-04-01', '2026-04-01')).toBeNull();
+  });
+
+  it('returns null when end is after start', () => {
+    expect(validateDates('2026-04-01', '2026-04-10')).toBeNull();
+  });
+
+  it('returns error when end is before start', () => {
+    expect(validateDates('2026-04-10', '2026-04-01')).toBe('End date cannot be before start date');
+  });
+
+  it('returns null when start is empty', () => {
+    expect(validateDates('', '2026-04-01')).toBeNull();
+  });
+
+  it('returns null when end is empty', () => {
+    expect(validateDates('2026-04-01', '')).toBeNull();
+  });
 });

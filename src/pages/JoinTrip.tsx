@@ -11,15 +11,14 @@ import { ArrowLeft, Users } from 'lucide-react';
 const JoinTrip = () => {
   const navigate = useNavigate();
   const [code, setCode] = useState('');
-  const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!code.trim() || !displayName.trim()) return;
+    if (!code.trim()) return;
     setLoading(true);
     try {
-      const trip = await joinTripByCode(code.trim(), displayName.trim());
+      const trip = await joinTripByCode(code.trim());
       toast({ title: 'Joined!', description: `Welcome to ${trip.name}` });
       navigate(`/trip/${trip.id}`);
     } catch (err: any) {
@@ -54,17 +53,7 @@ const JoinTrip = () => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Your Name</Label>
-              <Input
-                value={displayName}
-                onChange={e => setDisplayName(e.target.value)}
-                placeholder="What should others call you?"
-                className="bg-card"
-              />
-            </div>
-
-            <Button type="submit" disabled={loading || !code.trim() || !displayName.trim()} className="w-full rounded-full text-lg py-6">
+            <Button type="submit" disabled={loading || !code.trim()} className="w-full rounded-full text-lg py-6">
               {loading ? 'Joining...' : 'Join Trip 🤝'}
             </Button>
           </form>

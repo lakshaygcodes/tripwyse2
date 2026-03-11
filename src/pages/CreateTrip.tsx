@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { createTripInDB } from '@/lib/supabaseTripStore';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Plus, X } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 const CURRENCIES = [
   { code: 'INR', symbol: '₹' },
@@ -27,28 +27,15 @@ const CreateTrip = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [currency, setCurrency] = useState('INR');
-  const [travellers, setTravellers] = useState<string[]>([]);
-  const [newTraveller, setNewTraveller] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const addTraveller = () => {
-    const trimmed = newTraveller.trim();
-    if (trimmed && !travellers.includes(trimmed)) {
-      setTravellers([...travellers, trimmed]);
-      setNewTraveller('');
-    }
-  };
-
-  const removeTraveller = (name: string) => {
-    setTravellers(travellers.filter(t => t !== name));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || travellers.length < 2) return;
+    if (!name) return;
     setLoading(true);
     try {
-      const trip = await createTripInDB({ name, startDate, endDate, currency, travellers });
+      const trip = await createTripInDB({ name, startDate, endDate, currency });
       toast({ title: 'Trip created!', description: `Share code: ${trip.join_code}` });
       navigate(`/trip/${trip.id}`);
     } catch (err: any) {
@@ -57,7 +44,11 @@ const CreateTrip = () => {
     setLoading(false);
   };
 
-  const isValid = name.trim() && travellers.length >= 2;
+  const dateError = startDate && endDate && endDate < startDate
+    ? 'End date cannot be before start date'
+    : null;
+
+  const isValid = name.trim() && !dateError;
 
   return (
     <div className="min-h-screen grain-overlay">
@@ -83,9 +74,19 @@ const CreateTrip = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="end">End Date</Label>
-                <Input id="end" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="bg-card" />
+                <Input
+                  id="end"
+                  type="date"
+                  value={endDate}
+                  min={startDate || undefined}
+                  onChange={e => setEndDate(e.target.value)}
+                  className={`bg-card ${dateError ? 'border-destructive' : ''}`}
+                />
               </div>
             </div>
+            {dateError && (
+              <p className="text-xs text-destructive -mt-3">{dateError}</p>
+            )}
 
             <div className="space-y-2">
               <Label>Currency</Label>
@@ -99,33 +100,6 @@ const CreateTrip = () => {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Travellers ({travellers.length})</Label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Add a name"
-                  value={newTraveller}
-                  onChange={e => setNewTraveller(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTraveller(); } }}
-                  className="bg-card"
-                />
-                <Button type="button" variant="secondary" size="icon" onClick={addTraveller}>
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-              {travellers.length < 2 && <p className="text-xs text-muted-foreground">Add at least 2 travellers</p>}
-              <div className="flex flex-wrap gap-2 mt-2">
-                {travellers.map(t => (
-                  <span key={t} className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-secondary text-sm font-medium">
-                    {t}
-                    <button type="button" onClick={() => removeTraveller(t)} className="text-muted-foreground hover:text-foreground">
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
             </div>
 
             <Button type="submit" disabled={!isValid || loading} className="w-full rounded-full text-lg py-6 mt-4">
